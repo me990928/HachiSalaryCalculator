@@ -1,13 +1,11 @@
 package com.example.hachisalarycalc
 
 import java.time.Duration
-import java.time.LocalDateTime
-import kotlin.math.ceil
-import SalaryCalculator
+import java.time.LocalTime
 
 class HachiSalaryCalculator(
-    private val startTime: LocalDateTime,	// 労働開始時間
-    private val endTime: LocalDateTime,		// 労働終了時間
+    private val startTime: LocalTime,	// 労働開始時間
+    private val endTime: LocalTime,		// 労働終了時間
     private val breakTime: Double,			// 休憩時間
     private val isHoliday: Boolean,			// 休日フラグ
     private val specialWage: Int,		// 特殊時給
@@ -36,7 +34,7 @@ class HachiSalaryCalculator(
     private val nightWorkTime = endTimeHour - nightWorkStartTime				// 22時以降の労働時間
     private val workTime = endTimeHour - startTimeHour - breakTime				// １日の労働時間
 
-    private val calculator = SalaryCalculator(wage, normalWork, dayWorkTime, workTime, nightWorkTime, singleMultiplier, doubleMultiplier)
+    private val cal = SalaryCalculator(wage, normalWork, dayWorkTime, workTime, nightWorkTime, singleMultiplier, doubleMultiplier)
 
     private var daySalary = 0
 
@@ -44,7 +42,7 @@ class HachiSalaryCalculator(
         isNightWork = calculateNightWork()
         isOverWork = calculateOverWork()
         is22UnderOverWork = calculate22UnderOverWork()
-        daySalary = if (isNightWork) if (isOverWork) if (is22UnderOverWork) calcOverAfterNightSalary() else calcNightAfterOverSalary() else calcNightSalary() else if (isOverWork) calcOverWorkSalary() else calcNormalSalary()
+        daySalary = if (isNightWork) if (isOverWork) if (is22UnderOverWork) cal.calcOverAfterNightSalary() else cal.calcNightAfterOverSalary() else cal.calcNightSalary() else if (isOverWork) cal.calcOverWorkSalary() else cal.calcNormalSalary()
     }
 
     // 時給のセット
@@ -73,35 +71,9 @@ class HachiSalaryCalculator(
         return workTimeHour - breakTime > normalWork
     }
 
-    // 日給割り出しメソッド
-    // 計算メソッド
+    // 給料計算結果を返す
     fun calculateSalary(): Int {
         return daySalary
-    }
-    // 手当なしの日給
-    private fun calcNormalSalary(): Int {
-        val salary = workTime * wage
-        return ceil(salary).toInt()
-    }
-    // 残業手当のみ
-    private fun calcOverWorkSalary(): Int {
-        val salary = (normalWork * wage.toDouble()) + ((workTime - normalWork) * wage.toDouble() * singleMultiplier)
-        return ceil(salary).toInt()
-    }
-    // 夜勤手当のみ
-    private fun calcNightSalary(): Int {
-        val salary = (dayWorkTime * wage.toDouble()) + (nightWorkTime * wage.toDouble() * singleMultiplier)
-        return ceil(salary).toInt()
-    }
-    // 残業して夜勤
-    private fun calcOverAfterNightSalary(): Int {
-        val salary = (normalWork * wage.toDouble()) + ((dayWorkTime - normalWork) * wage.toDouble() * singleMultiplier) + (nightWorkTime * wage.toDouble() * doubleMultiplier)
-        return ceil(salary).toInt()
-    }
-    // 夜勤して残業
-    private fun calcNightAfterOverSalary(): Int {
-        val salary = (dayWorkTime * wage.toDouble()) + ((normalWork - dayWorkTime) * wage.toDouble() * singleMultiplier) + ((workTime - normalWork) * wage.toDouble() * doubleMultiplier)
-        return ceil(salary).toInt()
     }
 
 }
