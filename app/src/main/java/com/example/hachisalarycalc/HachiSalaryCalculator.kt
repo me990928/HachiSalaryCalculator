@@ -1,6 +1,9 @@
+package com.example.hachisalarycalc
+
 import java.time.Duration
 import java.time.LocalDateTime
 import kotlin.math.ceil
+import SalaryCalculator
 
 class HachiSalaryCalculator(
     private val startTime: LocalDateTime,	// 労働開始時間
@@ -32,6 +35,8 @@ class HachiSalaryCalculator(
     private val dayWorkTime = nightWorkStartTime - startTimeHour - breakTime	// 22時までの労働時間
     private val nightWorkTime = endTimeHour - nightWorkStartTime				// 22時以降の労働時間
     private val workTime = endTimeHour - startTimeHour - breakTime				// １日の労働時間
+
+    private val calculator = SalaryCalculator(wage, normalWork, dayWorkTime, workTime, nightWorkTime, singleMultiplier, doubleMultiplier)
 
     private var daySalary = 0
 
