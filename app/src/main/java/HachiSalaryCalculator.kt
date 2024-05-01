@@ -13,7 +13,7 @@ class HachiSalaryCalculator(
     // 将来的に設定画面で任意で変更できるようにする
     private val baseWage: Int = 1100				// 基本時給
     private val holidayWage: Int = 1150				// 休日時給
-    private var wage: Int = 0						// 計算時給
+    private var wage: Int = calculateWage()						// 計算時給
 
     private var isNightWork: Boolean = false			// 夜勤の有無フラグ
     private var isOverWork: Boolean = false				// 残業ありフラグ
@@ -36,20 +36,19 @@ class HachiSalaryCalculator(
     private var daySalary = 0
 
     init {
-        wage = setWage()
-        isNightWork = setNightWork()
-        isOverWork = setOverWork()
-        is22UnderOverWork = set22UnderOverWork()
+        isNightWork = calculateNightWork()
+        isOverWork = calculateOverWork()
+        is22UnderOverWork = calculate22UnderOverWork()
         daySalary = if (isNightWork) if (isOverWork) if (is22UnderOverWork) calcOverAfterNightSalary() else calcNightAfterOverSalary() else calcNightSalary() else if (isOverWork) calcOverWorkSalary() else calcNormalSalary()
     }
 
     // 時給のセット
-    private fun setWage(): Int {
+    private fun calculateWage(): Int {
         return if(isSpecialWage) specialWage else if(isHoliday) holidayWage else baseWage
     }
 
     // 夜勤フラグの初期化
-    private fun setNightWork(): Boolean {
+    private fun calculateNightWork(): Boolean {
         val hour: Double = endTime.hour.toDouble()
         val min: Double = endTime.minute.toDouble() / 60
         val total: Double = hour + min
@@ -57,13 +56,13 @@ class HachiSalaryCalculator(
     }
 
     // 残業フラグの初期化
-    private fun setOverWork(): Boolean {
+    private fun calculateOverWork(): Boolean {
         val workTimeHour = (Duration.between(startTime, endTime).toMinutes()).toDouble() / 60
         return workTimeHour - breakTime > normalWork
     }
 
     // 22時より前の残業フラグの初期化
-    private fun set22UnderOverWork(): Boolean {
+    private fun calculate22UnderOverWork(): Boolean {
         val startTimeHour = startTime.hour.toDouble() + (startTime.minute.toDouble() / 60)
         val workTimeHour = nightWorkStartTime - startTimeHour
         return workTimeHour - breakTime > normalWork
@@ -71,7 +70,9 @@ class HachiSalaryCalculator(
 
     // 日給割り出しメソッド
     // 計算メソッド
-
+    fun calculateSalary(): Int {
+        return daySalary
+    }
     // 手当なしの日給
     private fun calcNormalSalary(): Int {
         val salary = workTime * wage
@@ -97,7 +98,5 @@ class HachiSalaryCalculator(
         val salary = (dayWorkTime * wage.toDouble()) + ((normalWork - dayWorkTime) * wage.toDouble() * singleMultiplier) + ((workTime - normalWork) * wage.toDouble() * doubleMultiplier)
         return ceil(salary).toInt()
     }
-
-
 
 }
